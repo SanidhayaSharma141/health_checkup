@@ -17,19 +17,80 @@ class _HomeScreenState extends State<HomeScreen> {
     tests.sort((a, b) => b.numberOfTestsTaken.compareTo(a.numberOfTestsTaken));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Health Checkup"),
-        actions: [
-          IconButton(
-              onPressed: () {}, icon: const Icon(Icons.shopping_bag_outlined))
-        ],
-      ),
+      appBar: MediaQuery.of(context).size.width > 816
+          ? null
+          : AppBar(
+              title: const Text("Health Checkup"),
+              actions: [
+                IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.shopping_bag_outlined))
+              ],
+            ),
       body: ResponsiveBuilder(builder: (context, sizingInformation) {
         return SingleChildScrollView(
           child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
+                if (MediaQuery.of(context).size.width > 816)
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.health_and_safety,
+                        size: 50,
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.25,
+                      ),
+                      TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            "Home",
+                            style: TextStyle(color: Colors.blue),
+                          )),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.05,
+                      ),
+                      TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            "View Tests",
+                            style: TextStyle(color: Colors.black),
+                          )),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.05,
+                      ),
+                      TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            "About us",
+                            style: TextStyle(color: Colors.black),
+                          )),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.05,
+                      ),
+                      TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            "Contact",
+                            style: TextStyle(color: Colors.black),
+                          )),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.05,
+                      ),
+                      Expanded(
+                        child: Container(
+                          alignment: Alignment.centerRight,
+                          child: ElevatedButton.icon(
+                            label: Text("Cart"),
+                            onPressed: () {},
+                            icon: Icon(Icons.shop_rounded),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
                 Text(
                   "Popular Tests",
                   style: Theme.of(context)
@@ -65,7 +126,7 @@ class HealthTests extends StatelessWidget {
       shrinkWrap: true,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: sizingInformation.isDesktop ? 4 : 2,
-          childAspectRatio: sizingInformation.isDesktop ? 1.8 : 1.2),
+          childAspectRatio: sizingInformation.isDesktop ? 1.9 : 1.2),
       itemCount: sizingInformation.isDesktop ? 8 : 4,
       itemBuilder: (context, index) {
         return Container(
@@ -222,7 +283,7 @@ class HealthTests extends StatelessWidget {
                             onPressed: () {},
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
-                                  Theme.of(context).colorScheme.secondary,
+                                  Theme.of(context).colorScheme.primary,
                             ),
                             child: Text(
                               "Add to Cart",
@@ -246,7 +307,7 @@ class HealthTests extends StatelessWidget {
                             onPressed: () {},
                             style: ElevatedButton.styleFrom(
                               backgroundColor:
-                                  Theme.of(context).colorScheme.secondary,
+                                  Theme.of(context).colorScheme.primary,
                             ),
                             child: Text(
                               "View Details",
@@ -276,7 +337,9 @@ class PackageTest extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.75,
+      width: MediaQuery.of(context).size.width > 816
+          ? 400
+          : MediaQuery.of(context).size.width * 0.75,
       padding: EdgeInsets.all(16.0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
