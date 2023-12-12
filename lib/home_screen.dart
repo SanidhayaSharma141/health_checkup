@@ -1,6 +1,7 @@
 import 'package:alemeno_health_checkup/data/test_packages.dart';
 import 'package:flutter/material.dart';
 import 'package:responsive_builder/responsive_builder.dart';
+import 'cart_screen.dart';
 import 'data/health_test.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -23,7 +24,8 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text("Health Checkup"),
               actions: [
                 IconButton(
-                    onPressed: () {},
+                    onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const CartPage())),
                     icon: const Icon(Icons.shopping_bag_outlined))
               ],
             ),
