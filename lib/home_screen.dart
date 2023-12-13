@@ -86,7 +86,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           alignment: Alignment.centerRight,
                           child: ElevatedButton.icon(
                             label: Text("Cart"),
-                            onPressed: () {},
+                            onPressed: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (_) => const CartPage())),
                             icon: Icon(Icons.shop_rounded),
                           ),
                         ),

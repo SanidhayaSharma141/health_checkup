@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "817926074445",
+    "project_id": "health-checkup-8b2d4",
+    "storage_bucket": "health-checkup-8b2d4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:817926074445:android:bd400570e8e96f6bc86c04",
+        "android_client_info": {
+          "package_name": "com.example.alemeno_health_checkup"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUUgI6Ahiy9CBOG8TanvOvuj3YZXlBoPs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
