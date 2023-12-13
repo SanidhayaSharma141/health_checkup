@@ -1,4 +1,7 @@
 import 'package:alemeno_health_checkup/data/health_test.dart';
+import 'package:alemeno_health_checkup/model/functions.dart';
+import 'package:alemeno_health_checkup/schedule_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 Widget healthTestWidget(Test test) => Card(
@@ -18,10 +21,8 @@ Widget healthTestWidget(Test test) => Card(
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(
-                child: Text(
-                  "Includes ${test.includesHowManyTests} tests",
-                ),
+              Text(
+                "Includes ${test.includesHowManyTests} tests",
               ),
               Container(
                 margin: EdgeInsets.all(5),
@@ -104,27 +105,25 @@ Widget cartData(List<Test> test, BuildContext context, bool isDesktop) =>
                           .bodyLarge!
                           .copyWith(color: Colors.blue),
                     ),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Text(
-                            '₹${test[index].discountPrice}/-',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green,
-                              fontSize: 18,
-                            ),
+                    Column(
+                      children: [
+                        Text(
+                          '₹${test[index].discountPrice}/-',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                            fontSize: 18,
                           ),
-                          Text(
-                            '₹${test[index].priceInRupees}',
-                            style: const TextStyle(
-                              decoration: TextDecoration.lineThrough,
-                              color: Colors.red,
-                              fontSize: 14,
-                            ),
+                        ),
+                        Text(
+                          '₹${test[index].priceInRupees}',
+                          style: const TextStyle(
+                            decoration: TextDecoration.lineThrough,
+                            color: Colors.red,
+                            fontSize: 14,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -202,100 +201,362 @@ Widget cartData(List<Test> test, BuildContext context, bool isDesktop) =>
               ],
             );
           },
-          itemCount: 2,
+          itemCount: test.length,
         ),
       ],
     );
 
-Widget cartOrder(BuildContext context) => Column(
+class DatePickerDialog extends StatefulWidget {
+  final DateTime initialDate;
+  final DateTime firstDate;
+  final DateTime lastDate;
+  final ValueChanged<DateTime?> onDateSelected;
+
+  const DatePickerDialog({
+    required this.initialDate,
+    required this.firstDate,
+    required this.lastDate,
+    required this.onDateSelected,
+  });
+
+  @override
+  State<DatePickerDialog> createState() => _DatePickerDialogState();
+}
+
+class _DatePickerDialogState extends State<DatePickerDialog> {
+  DateTime? selectedDate;
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () async {
+        final DateTime? pickedDate = await showDatePicker(
+          context: context,
+          initialDate: widget.initialDate,
+          firstDate: widget.firstDate,
+          lastDate: widget.lastDate,
+        );
+
+        if (pickedDate != null) {
+          widget.onDateSelected(pickedDate);
+          setState(() {
+            selectedDate = pickedDate;
+          });
+        }
+      },
+      child: Text(selectedDate == null
+          ? 'Select Date'
+          : "${selectedDate!.day}-${selectedDate!.month}-${selectedDate!.year}"),
+    );
+  }
+}
+
+class TimePickerDialog extends StatefulWidget {
+  final TimeOfDay initialTime;
+  final ValueChanged<TimeOfDay?> onTimeSelected;
+
+  const TimePickerDialog({
+    required this.initialTime,
+    required this.onTimeSelected,
+  });
+
+  @override
+  State<TimePickerDialog> createState() => _TimePickerDialogState();
+}
+
+class _TimePickerDialogState extends State<TimePickerDialog> {
+  TimeOfDay? selectedTime;
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () async {
+        final TimeOfDay? pickedTime = await showTimePicker(
+          context: context,
+          initialTime: widget.initialTime,
+        );
+
+        if (pickedTime != null) {
+          widget.onTimeSelected(pickedTime);
+          setState(() {
+            selectedTime = pickedTime;
+          });
+        }
+      },
+      child: Text(selectedTime == null
+          ? 'Select Time'
+          : "${selectedTime!.hour}:${selectedTime!.minute} hrs"),
+    );
+  }
+}
+
+Widget cartOrder(List<Test> test, BuildContext context) {
+  double total = 0;
+  double discount = 0;
+  DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
+  for (final x in test) {
+    total += x.priceInRupees;
+    discount += x.priceInRupees - x.discountPrice;
+  }
+  return Column(
+    children: [
+      SizedBox(height: 20),
+      Card(
+        child: Row(
+          children: [
+            Icon(Icons.calendar_month),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                DatePickerDialog(
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                  lastDate: DateTime.now().add(const Duration(days: 60)),
+                  onDateSelected: (date) {
+                    _selectedDate = date;
+                  },
+                ),
+                TimePickerDialog(
+                  initialTime: TimeOfDay.now(),
+                  onTimeSelected: (time) {
+                    _selectedTime = time;
+                  },
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
+      SizedBox(height: 15),
+      Card(
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("M.R.P Total"),
+                Text(total.toString()),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Discount"),
+                Text(discount.toString()),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Amount to be paid"),
+                Text((total - discount).toString()),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text("Total Savings"),
+                Text(discount.toString()),
+              ],
+            ),
+          ],
+        ),
+      ),
+      SizedBox(
+        height: 16,
+      ),
+      Card(
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Checkbox(value: true, onChanged: (value) {}),
+                const Text(
+                  "Hard copy of reports",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            Text(
+                "Reports will be delivered within 3-4 working days. Hard copy charges are non-refundable once the reports have been dispatched."),
+            Text("150 per person")
+          ],
+        ),
+      ),
+      Container(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: () async {
+            await removeCart(test);
+          },
+          child: Text(
+            "Schedule",
+            style: TextStyle(color: Colors.white),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      )
+    ],
+  );
+}
+
+class ButtonWidget extends StatefulWidget {
+  ButtonWidget({super.key, required this.isDesktop, required this.test});
+  bool isDesktop;
+  Test test;
+  @override
+  State<ButtonWidget> createState() => _ButtonWidgetState();
+}
+
+class _ButtonWidgetState extends State<ButtonWidget> {
+  bool isAdding = false;
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        SizedBox(height: 20),
-        Card(
-          child: Row(
+        if (widget.isDesktop)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Icon(Icons.calendar_month),
-              Expanded(
-                child: TextButton(
-                  style: ButtonStyle(
-                    side: MaterialStateProperty.all(
-                      BorderSide(color: Colors.grey),
-                    ),
-                  ),
-                  onPressed: () {},
-                  child: Center(child: Text("Select Date")),
+              ElevatedButton(
+                onPressed: () async {
+                  if (!widget.test.isInCart) {
+                    setState(() {
+                      isAdding = !isAdding;
+                    });
+                    try {
+                      await FirebaseFirestore.instance
+                          .collection('Cart')
+                          .doc(widget.test.testName)
+                          .set({"test": true});
+                    } catch (e) {
+                      setState(() {
+                        isAdding = !isAdding;
+                      });
+                      return;
+                    }
+
+                    setState(() {
+                      widget.test.isInCart = true;
+                      isAdding = !isAdding;
+                    });
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isAdding
+                      ? Colors.orange
+                      : widget.test.isInCart
+                          ? Colors.green
+                          : Theme.of(context).primaryColor,
+                ),
+                child: Text(
+                  isAdding
+                      ? "Adding to Cart"
+                      : widget.test.isInCart
+                          ? "Added to Cart"
+                          : "Add to Cart",
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall!
+                      .copyWith(color: Colors.white, fontSize: 8),
+                ),
+              ),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.01,
+              ),
+              ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                ),
+                child: Text(
+                  "View Details",
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall!
+                      .copyWith(color: Colors.white, fontSize: 8),
                 ),
               ),
             ],
           ),
-        ),
-        SizedBox(height: 15),
-        Card(
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text("M.R.P Total"),
-                  Text("1400"),
-                ],
+        if (!widget.isDesktop)
+          Padding(
+            padding: const EdgeInsets.all(3),
+            child: Container(
+              height: MediaQuery.of(context).size.width * 0.4 / 1.5 * 0.1,
+              width: MediaQuery.of(context).size.width * 0.4,
+              child: ElevatedButton(
+                onPressed: () async {
+                  if (!widget.test.isInCart) {
+                    setState(() {
+                      isAdding = !isAdding;
+                    });
+                    try {
+                      await FirebaseFirestore.instance
+                          .collection('Cart')
+                          .doc(widget.test.testName)
+                          .set({"test": true});
+                    } catch (e) {
+                      setState(() {
+                        isAdding = !isAdding;
+                      });
+                      return;
+                    }
+
+                    setState(() {
+                      widget.test.isInCart = true;
+                      isAdding = !isAdding;
+                    });
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isAdding
+                      ? Colors.orange
+                      : widget.test.isInCart
+                          ? Colors.green
+                          : Theme.of(context).primaryColor,
+                ),
+                child: Text(
+                  isAdding
+                      ? "Adding to Cart"
+                      : widget.test.isInCart
+                          ? "Added to Cart"
+                          : "Add to Cart",
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall!
+                      .copyWith(color: Colors.white, fontSize: 8),
+                ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text("Discount"),
-                  Text("400"),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text("Amount to be paid"),
-                  Text("1400"),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text("Total Savings"),
-                  Text("1400"),
-                ],
-              ),
-            ],
-          ),
-        ),
-        SizedBox(
-          height: 16,
-        ),
-        Card(
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Checkbox(value: true, onChanged: (value) {}),
-                  const Text(
-                    "Hard copy of reports",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-              Text(
-                  "Reports will be delivered within 3-4 working days. Hard copy charges are non-refundable once the reports have been dispatched."),
-              Text("150 per person")
-            ],
-          ),
-        ),
-        Container(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () {},
-            child: Text(
-              "Schedule",
-              style: TextStyle(color: Colors.white),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
             ),
           ),
-        )
+        if (!widget.isDesktop)
+          Padding(
+            padding: const EdgeInsets.all(3),
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.4,
+              height: MediaQuery.of(context).size.width * 0.4 / 1.5 * 0.1,
+              child: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                ),
+                child: Text(
+                  "View Details",
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall!
+                      .copyWith(color: Colors.white, fontSize: 8),
+                ),
+              ),
+            ),
+          ),
       ],
     );
+  }
+}

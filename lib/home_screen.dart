@@ -1,4 +1,7 @@
 import 'package:alemeno_health_checkup/data/test_packages.dart';
+import 'package:alemeno_health_checkup/model/functions.dart';
+import 'package:alemeno_health_checkup/model/widgets.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:responsive_builder/responsive_builder.dart';
 import 'cart_screen.dart';
@@ -14,9 +17,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
-    // Sort the tests based on numTestTaken attribute in descending order
-    tests.sort((a, b) => b.numberOfTestsTaken.compareTo(a.numberOfTestsTaken));
-
     return Scaffold(
       appBar: MediaQuery.of(context).size.width > 816
           ? null
@@ -87,8 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: ElevatedButton.icon(
                             label: Text("Cart"),
                             onPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(
-                                    builder: (_) => const CartPage())),
+                                MaterialPageRoute(builder: (_) => CartPage())),
                             icon: Icon(Icons.shop_rounded),
                           ),
                         ),
@@ -102,7 +101,20 @@ class _HomeScreenState extends State<HomeScreen> {
                       .bodyLarge!
                       .copyWith(fontWeight: FontWeight.bold),
                 ),
-                HealthTests(sizingInformation: sizingInformation),
+                FutureBuilder(
+                  future: getTests(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting ||
+                        !snapshot.hasData) {
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                    return HealthTests(
+                        sizingInformation: sizingInformation,
+                        tests: snapshot.data!);
+                  },
+                ),
                 const Divider(color: Colors.black),
                 Text(
                   "Popular Packages",
@@ -111,7 +123,22 @@ class _HomeScreenState extends State<HomeScreen> {
                       .bodyLarge!
                       .copyWith(fontWeight: FontWeight.bold),
                 ),
-                Center(child: PackageTest(package: healthPackages[0])),
+                FutureBuilder(
+                  future: getPackages(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else if (!snapshot.hasData) {
+                      return Center(
+                        child: Text("Empty Data"),
+                      );
+                    }
+                    return Center(
+                        child: PackageTest(package: snapshot.data![0]));
+                  },
+                ),
               ]),
         );
       }),
@@ -120,20 +147,31 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 // ignore: must_be_immutable
-class HealthTests extends StatelessWidget {
-  HealthTests({super.key, required this.sizingInformation});
+class HealthTests extends StatefulWidget {
+  HealthTests(
+      {super.key, required this.sizingInformation, required this.tests});
   SizingInformation sizingInformation;
+  List<Test> tests;
 
   @override
+  State<HealthTests> createState() => _HealthTestsState();
+}
+
+class _HealthTestsState extends State<HealthTests> {
+  bool isAdding = false;
+  @override
   Widget build(BuildContext context) {
+    widget.tests
+        .sort((a, b) => b.numberOfTestsTaken.compareTo(a.numberOfTestsTaken));
     return GridView.builder(
       shrinkWrap: true,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: sizingInformation.isDesktop ? 4 : 2,
-          childAspectRatio: sizingInformation.isDesktop ? 1.9 : 1.2),
-      itemCount: sizingInformation.isDesktop ? 8 : 4,
+          crossAxisCount: widget.sizingInformation.isDesktop ? 4 : 2,
+          childAspectRatio: widget.sizingInformation.isDesktop ? 1.9 : 1.5),
+      itemCount: widget.sizingInformation.isDesktop ? 8 : 4,
       itemBuilder: (context, index) {
         return Container(
+          alignment: Alignment.bottomLeft,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
             boxShadow: [
@@ -163,7 +201,7 @@ class HealthTests extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    tests[index].testName,
+                    widget.tests[index].testName,
                     style: Theme.of(context)
                         .textTheme
                         .labelLarge!
@@ -178,7 +216,7 @@ class HealthTests extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          "Includes ${tests[index].includesHowManyTests} tests",
+                          "Includes ${widget.tests[index].includesHowManyTests} tests",
                           style: Theme.of(context)
                               .textTheme
                               .bodyMedium!
@@ -188,13 +226,13 @@ class HealthTests extends StatelessWidget {
                       Container(
                         margin: const EdgeInsets.only(left: 3),
                         decoration: BoxDecoration(
-                          color: tests[index].isSafe
+                          color: widget.tests[index].isSafe
                               ? Colors.greenAccent
                               : Colors.redAccent,
                           borderRadius: BorderRadius.circular(3),
                         ),
                         child: Icon(
-                          tests[index].isSafe
+                          widget.tests[index].isSafe
                               ? Icons.check_circle_outline
                               : Icons.cancel_outlined,
                           color: Theme.of(context).colorScheme.onPrimary,
@@ -221,7 +259,7 @@ class HealthTests extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '₹${tests[index].priceInRupees}',
+                        '₹${widget.tests[index].priceInRupees}',
                         style: const TextStyle(
                           decoration: TextDecoration.lineThrough,
                           color: Colors.red,
@@ -229,7 +267,7 @@ class HealthTests extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '₹${tests[index].discountPrice}',
+                        '₹${widget.tests[index].discountPrice}',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.green,
@@ -239,92 +277,9 @@ class HealthTests extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (sizingInformation.isDesktop)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.secondary,
-                        ),
-                        child: Text(
-                          "Add to Cart",
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall!
-                              .copyWith(color: Colors.white, fontSize: 8),
-                        ),
-                      ),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.01,
-                      ),
-                      ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              Theme.of(context).colorScheme.secondary,
-                        ),
-                        child: Text(
-                          "View Details",
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall!
-                              .copyWith(color: Colors.white, fontSize: 8),
-                        ),
-                      ),
-                    ],
-                  ),
-                if (!sizingInformation.isDesktop)
-                  Padding(
-                    padding: const EdgeInsets.all(3),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.primary,
-                            ),
-                            child: Text(
-                              "Add to Cart",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall!
-                                  .copyWith(color: Colors.white, fontSize: 8),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                if (!sizingInformation.isDesktop)
-                  Padding(
-                    padding: const EdgeInsets.all(3),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.primary,
-                            ),
-                            child: Text(
-                              "View Details",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall!
-                                  .copyWith(color: Colors.white, fontSize: 8),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                ButtonWidget(
+                    isDesktop: widget.sizingInformation.isDesktop,
+                    test: widget.tests[index])
               ],
             ),
           ),
@@ -366,7 +321,7 @@ class PackageTest extends StatelessWidget {
               Row(
                 children: [
                   Icon(
-                    package.icon,
+                    Icons.health_and_safety,
                     size: 40,
                     color: Theme.of(context).primaryColor,
                   ),
@@ -405,24 +360,71 @@ class PackageTest extends StatelessWidget {
                       color: Colors.green,
                     ),
                   ),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                    ),
-                    child: Text(
-                      "Add to Cart",
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall!
-                          .copyWith(color: Colors.white),
-                    ),
-                  ),
                 ],
+              ),
+              CartPackageButton(
+                test: package,
               )
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class CartPackageButton extends StatefulWidget {
+  CartPackageButton({super.key, required this.test});
+  HealthPackage test;
+  @override
+  State<CartPackageButton> createState() => _CartPackageButtonState();
+}
+
+class _CartPackageButtonState extends State<CartPackageButton> {
+  bool isAdding = false;
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () async {
+        if (!widget.test.isInCart) {
+          setState(() {
+            isAdding = !isAdding;
+          });
+          try {
+            await FirebaseFirestore.instance
+                .collection('Cart')
+                .doc(widget.test.title)
+                .set({"test": false});
+          } catch (e) {
+            setState(() {
+              isAdding = !isAdding;
+            });
+            return;
+          }
+
+          setState(() {
+            widget.test.isInCart = true;
+            isAdding = !isAdding;
+          });
+        }
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: isAdding
+            ? Colors.orange
+            : widget.test.isInCart
+                ? Colors.green
+                : Theme.of(context).primaryColor,
+      ),
+      child: Text(
+        isAdding
+            ? "Adding to Cart"
+            : widget.test.isInCart
+                ? "Added to Cart"
+                : "Add to Cart",
+        style: Theme.of(context)
+            .textTheme
+            .bodySmall!
+            .copyWith(color: Colors.white),
       ),
     );
   }

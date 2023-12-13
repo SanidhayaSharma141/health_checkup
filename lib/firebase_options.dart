@@ -44,38 +44,37 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBYv1FXa0nYYvlNneyvuBnZsnpdxYlea2A',
-    appId: '1:817926074445:web:8140e8e0cf0bc966c86c04',
-    messagingSenderId: '817926074445',
-    projectId: 'health-checkup-8b2d4',
-    authDomain: 'health-checkup-8b2d4.firebaseapp.com',
-    storageBucket: 'health-checkup-8b2d4.appspot.com',
-    measurementId: 'G-GGPX5X72JB',
+    apiKey: 'AIzaSyA4LA6hYAobNl_6DLk0HQ1nZSOqCSgYrSM',
+    appId: '1:663765526403:web:aea3b1fb1407de25b7f8b6',
+    messagingSenderId: '663765526403',
+    projectId: 'healthcheckup-134a1',
+    authDomain: 'healthcheckup-134a1.firebaseapp.com',
+    storageBucket: 'healthcheckup-134a1.appspot.com',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCUUgI6Ahiy9CBOG8TanvOvuj3YZXlBoPs',
-    appId: '1:817926074445:android:bd400570e8e96f6bc86c04',
-    messagingSenderId: '817926074445',
-    projectId: 'health-checkup-8b2d4',
-    storageBucket: 'health-checkup-8b2d4.appspot.com',
+    apiKey: 'AIzaSyAvQvAxTdk2vKyWOB2M8wObJfciA5U6wvY',
+    appId: '1:663765526403:android:745b2c6915a64217b7f8b6',
+    messagingSenderId: '663765526403',
+    projectId: 'healthcheckup-134a1',
+    storageBucket: 'healthcheckup-134a1.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyAhdrW1AsS68yhmfQe50zIJMV_L0GHLdGc',
-    appId: '1:817926074445:ios:9bc5a30cbf5d8804c86c04',
-    messagingSenderId: '817926074445',
-    projectId: 'health-checkup-8b2d4',
-    storageBucket: 'health-checkup-8b2d4.appspot.com',
+    apiKey: 'AIzaSyARNzpEXY-VLpFYWa8KN4SNRh8odnP-7m8',
+    appId: '1:663765526403:ios:be5005181a0588aab7f8b6',
+    messagingSenderId: '663765526403',
+    projectId: 'healthcheckup-134a1',
+    storageBucket: 'healthcheckup-134a1.appspot.com',
     iosBundleId: 'com.example.alemenoHealthCheckup',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyAhdrW1AsS68yhmfQe50zIJMV_L0GHLdGc',
-    appId: '1:817926074445:ios:9ec786a4a63fbfc8c86c04',
-    messagingSenderId: '817926074445',
-    projectId: 'health-checkup-8b2d4',
-    storageBucket: 'health-checkup-8b2d4.appspot.com',
+    apiKey: 'AIzaSyARNzpEXY-VLpFYWa8KN4SNRh8odnP-7m8',
+    appId: '1:663765526403:ios:4daef79754a056a6b7f8b6',
+    messagingSenderId: '663765526403',
+    projectId: 'healthcheckup-134a1',
+    storageBucket: 'healthcheckup-134a1.appspot.com',
     iosBundleId: 'com.example.alemenoHealthCheckup.RunnerTests',
   );
 }

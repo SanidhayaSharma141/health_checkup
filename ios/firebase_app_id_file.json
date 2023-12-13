@@ -1,7 +1,7 @@
 {
   "file_generated_by": "FlutterFire CLI",
   "purpose": "FirebaseAppID & ProjectID for this Firebase app in this directory",
-  "GOOGLE_APP_ID": "1:817926074445:ios:9bc5a30cbf5d8804c86c04",
-  "FIREBASE_PROJECT_ID": "health-checkup-8b2d4",
-  "GCM_SENDER_ID": "817926074445"
+  "GOOGLE_APP_ID": "1:663765526403:ios:be5005181a0588aab7f8b6",
+  "FIREBASE_PROJECT_ID": "healthcheckup-134a1",
+  "GCM_SENDER_ID": "663765526403"
 }
