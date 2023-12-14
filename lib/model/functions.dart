@@ -67,7 +67,6 @@ Future<List<Test>> getTests() async {
     final priceInRupees = doc['priceInRupees'].toDouble();
 
     final testName = doc.id;
-    print("hi");
     Test x = Test(
       category: category.toString(),
       componentsToBeTested: componentsToBeTested,
@@ -80,11 +79,9 @@ Future<List<Test>> getTests() async {
       isInCart: isInCart,
     );
 
-    print(x);
     list.add(x);
   }
   list.sort((a, b) => b.numberOfTestsTaken.compareTo(a.numberOfTestsTaken));
-  print(list);
   return list;
 }
 
@@ -103,19 +100,20 @@ Future<List<HealthPackage>> getPackages() async {
       isInCart = true;
     }
     final category = doc['category'];
-    final componentsTested = doc['componentsTested'];
+    final componentsTested = doc['componentsTested'].toList();
     final price = doc['price'];
     final includesHowManyTests = doc['includesHowManyTests'];
     final isSafe = doc['isSafe'];
     final title = doc.id;
+    print(title);
     list.add(HealthPackage(
-        category: category,
+        category: category.toString(),
         componentsTested: componentsTested,
-        price: price,
+        price: price.toDouble(),
         includesHowManyTests: includesHowManyTests,
         isSafe: isSafe,
         isInCart: isInCart,
-        title: title));
+        title: title.toString()));
     print(list);
   }
   return list;
@@ -192,11 +190,23 @@ Future<List<Test>> getCartData() async {
   return list;
 }
 
-Future<void> removeCart(List<Test> test) async {
-  for (final x in test) {
-    await FirebaseFirestore.instance
-        .collection('Cart')
-        .doc(x.testName)
-        .delete();
+Future<bool> removeCart({Test? test, List<Test>? testList}) async {
+  try {
+    if (test != null) {
+      await FirebaseFirestore.instance
+          .collection('Cart')
+          .doc(test.testName)
+          .delete();
+      return true;
+    }
+    for (final x in testList!) {
+      await FirebaseFirestore.instance
+          .collection('Cart')
+          .doc(x.testName)
+          .delete();
+    }
+    return true;
+  } catch (e) {
+    return false;
   }
 }

@@ -1,8 +1,11 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:alemeno_health_checkup/data/health_test.dart';
 import 'package:alemeno_health_checkup/model/functions.dart';
 import 'package:alemeno_health_checkup/schedule_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 Widget healthTestWidget(Test test) => Card(
       elevation: 10,
@@ -68,15 +71,28 @@ Widget healthTestWidget(Test test) => Card(
       ),
     );
 
-Widget cartData(List<Test> test, BuildContext context, bool isDesktop) =>
-    Column(
+// ignore: must_be_immutable
+class CartData extends StatefulWidget {
+  CartData({super.key, required this.isDesktop, required this.test});
+  List<Test> test;
+  bool isDesktop;
+  @override
+  State<CartData> createState() => _CartDataState();
+}
+
+class _CartDataState extends State<CartData> {
+  bool isDeleting = false;
+  @override
+  Widget build(BuildContext context) {
+    return Column(
       children: [
         Container(
           width: double.infinity,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(8)),
+            color: Theme.of(context).colorScheme.primary,
+            borderRadius: BorderRadius.circular(8),
+          ),
           child: Text(
             "Pathology Tests",
             style: Theme.of(context)
@@ -86,125 +102,159 @@ Widget cartData(List<Test> test, BuildContext context, bool isDesktop) =>
           ),
         ),
         SizedBox(height: 15),
-        ListView.builder(
-          shrinkWrap: true,
-          itemBuilder: (context, index) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                SizedBox(height: 15),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      test[index].testName,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyLarge!
-                          .copyWith(color: Colors.blue),
-                    ),
-                    Column(
-                      children: [
-                        Text(
-                          '₹${test[index].discountPrice}/-',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                            fontSize: 18,
-                          ),
+        if (isDeleting)
+          const Center(
+            child: Icon(Icons.update),
+          ),
+        if (!isDeleting)
+          ListView.builder(
+            shrinkWrap: true,
+            itemBuilder: (context, index) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 15),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.test[index].testName,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge!
+                              .copyWith(color: Colors.blue),
                         ),
-                        Text(
-                          '₹${test[index].priceInRupees}',
-                          style: const TextStyle(
-                            decoration: TextDecoration.lineThrough,
-                            color: Colors.red,
-                            fontSize: 14,
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '₹${widget.test[index].discountPrice}/-',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                              fontSize: 18,
+                            ),
+                          ),
+                          Text(
+                            '₹${widget.test[index].priceInRupees}',
+                            style: const TextStyle(
+                              decoration: TextDecoration.lineThrough,
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 5),
+                  if (widget.isDesktop)
+                    Row(
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: () async {
+                            setState(() {
+                              isDeleting = !isDeleting;
+                            });
+                            final resp =
+                                await removeCart(test: widget.test[index]);
+                            if (resp) {
+                              setState(() {
+                                widget.test.remove(widget.test[index]);
+                              });
+                            }
+                            setState(() {
+                              isDeleting = !isDeleting;
+                            });
+                          },
+                          icon: const Icon(Icons.delete),
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              side: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          label: const Text("Remove"),
+                        ),
+                        SizedBox(width: 5),
+                        ElevatedButton.icon(
+                          onPressed: () {},
+                          icon: const Icon(Icons.upload),
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              side: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          label: const Text(
+                            "Upload prescription(optional)",
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-                if (isDesktop)
-                  Row(
-                    children: [
-                      ElevatedButton.icon(
-                          onPressed: () {},
+                  if (!widget.isDesktop)
+                    Column(
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: () async {
+                            setState(() {
+                              isDeleting = !isDeleting;
+                            });
+                            final resp =
+                                await removeCart(test: widget.test[index]);
+                            if (resp) {
+                              setState(() {
+                                widget.test.remove(widget.test[index]);
+                              });
+                            }
+                            setState(() {
+                              isDeleting = !isDeleting;
+                            });
+                          },
                           icon: const Icon(Icons.delete),
-                          style: ButtonStyle(
-                              shape: MaterialStateProperty.all(
-                                  RoundedRectangleBorder(
-                                      side: BorderSide(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary),
-                                      borderRadius:
-                                          BorderRadius.circular(16)))),
-                          label: const Text("Remove")),
-                      SizedBox(
-                        width: 5,
-                      ),
-                      ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              side: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          label: const Text("Remove"),
+                        ),
+                        SizedBox(height: 5),
+                        ElevatedButton.icon(
                           onPressed: () {},
                           icon: const Icon(Icons.upload),
-                          style: ButtonStyle(
-                              shape: MaterialStateProperty.all(
-                                  RoundedRectangleBorder(
-                                      side: BorderSide(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary),
-                                      borderRadius:
-                                          BorderRadius.circular(16)))),
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              side: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
                           label: const Text(
                             "Upload prescription(optional)",
-                            overflow: TextOverflow.clip,
-                          )),
-                    ],
-                  ),
-                if (!isDesktop)
-                  ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.delete),
-                      style: ButtonStyle(
-                          shape: MaterialStateProperty.all(
-                              RoundedRectangleBorder(
-                                  side: BorderSide(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary),
-                                  borderRadius: BorderRadius.circular(16)))),
-                      label: const Text("Remove")),
-                SizedBox(
-                  height: 5,
-                ),
-                if (!isDesktop)
-                  ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.upload),
-                      style: ButtonStyle(
-                          shape: MaterialStateProperty.all(
-                              RoundedRectangleBorder(
-                                  side: BorderSide(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary),
-                                  borderRadius: BorderRadius.circular(16)))),
-                      label: const Text(
-                        "Upload prescription(optional)",
-                        overflow: TextOverflow.clip,
-                      )),
-                const Divider(),
-                SizedBox(height: 15),
-              ],
-            );
-          },
-          itemCount: test.length,
-        ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  const Divider(),
+                ],
+              );
+            },
+            itemCount: widget.test.length,
+          ),
       ],
     );
+  }
+}
 
 class DatePickerDialog extends StatefulWidget {
   final DateTime initialDate;
@@ -288,116 +338,204 @@ class _TimePickerDialogState extends State<TimePickerDialog> {
   }
 }
 
-Widget cartOrder(List<Test> test, BuildContext context) {
-  double total = 0;
-  double discount = 0;
-  DateTime? _selectedDate;
-  TimeOfDay? _selectedTime;
-  for (final x in test) {
-    total += x.priceInRupees;
-    discount += x.priceInRupees - x.discountPrice;
+class CartOrder extends StatefulWidget {
+  CartOrder({super.key, required this.test});
+  ValueNotifier<List<Test>> test;
+  @override
+  State<CartOrder> createState() => _CartOrderState();
+}
+
+class _CartOrderState extends State<CartOrder> {
+  DateTime? selectedDate;
+  TimeOfDay? selectedTime;
+  bool hardCopyChecked = false;
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: widget.test,
+      builder: (context, value, child) {
+        double total = 0;
+        double discount = 0;
+
+        for (final x in widget.test.value) {
+          total += x.priceInRupees;
+          discount += x.priceInRupees - x.discountPrice;
+        }
+        return Column(
+          children: [
+            const SizedBox(height: 20),
+            Card(
+              child: Row(
+                children: [
+                  const Icon(Icons.calendar_month),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      DatePickerDialog(
+                        initialDate: DateTime.now(),
+                        firstDate:
+                            DateTime.now().subtract(const Duration(days: 365)),
+                        lastDate: DateTime.now().add(const Duration(days: 60)),
+                        onDateSelected: (date) {
+                          setState(() {
+                            selectedDate = date;
+                          });
+                        },
+                      ),
+                      TimePickerDialog(
+                        initialTime: TimeOfDay.now(),
+                        onTimeSelected: (time) {
+                          setState(() {
+                            selectedTime = time;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 15),
+            Card(
+              child: Column(
+                children: [
+                  _buildRow("M.R.P Total", "₹${total.toString()}"),
+                  _buildRow("Discount", "₹$discount"),
+                  _buildRow("Amount to be paid", "₹${total - discount}"),
+                  _buildRow("Total Savings", "₹$discount", isGreen: true),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: hardCopyChecked,
+                        onChanged: (value) {
+                          setState(() {
+                            hardCopyChecked = value ?? false;
+                          });
+                        },
+                      ),
+                      const Text(
+                        "Hard copy of reports",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const Text(
+                    "Reports will be delivered within 3-4 working days. Hard copy charges are non-refundable once the reports have been dispatched.",
+                  ),
+                  const Text(
+                    "₹150 per person",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  if (selectedDate == null || selectedTime == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Select date and time first")));
+                    return;
+                  }
+                  await removeCart(testList: widget.test.value);
+                  await showDialog(
+                    context: context,
+                    builder: (context) {
+                      return Dialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16.0),
+                        ),
+                        elevation: 0,
+                        backgroundColor: Colors.transparent,
+                        child:
+                            contentBox(context, selectedDate!, selectedTime!),
+                      );
+                    },
+                  );
+
+                  Navigator.of(context).pop(true);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                ),
+                child: const Text(
+                  "Schedule",
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
-  return Column(
+
+  Widget contentBox(BuildContext context, DateTime date, TimeOfDay time) {
+    return Container(
+      padding: EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        shape: BoxShape.rectangle,
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.0),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black,
+            offset: Offset(0, 10),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Appointment Scheduled Successfully',
+            style: TextStyle(
+              fontSize: 18.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16.0),
+          Text(
+            'Date: ${date.day}-${date.month}-${date.year}\nTime: ${time.hour}:${time.minute} hrs',
+            style: TextStyle(
+              fontSize: 16.0,
+            ),
+          ),
+          const SizedBox(height: 16.0),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Widget _buildRow(String label, String value, {bool isGreen = false}) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
-      SizedBox(height: 20),
-      Card(
-        child: Row(
-          children: [
-            Icon(Icons.calendar_month),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                DatePickerDialog(
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime.now().subtract(const Duration(days: 365)),
-                  lastDate: DateTime.now().add(const Duration(days: 60)),
-                  onDateSelected: (date) {
-                    _selectedDate = date;
-                  },
-                ),
-                TimePickerDialog(
-                  initialTime: TimeOfDay.now(),
-                  onTimeSelected: (time) {
-                    _selectedTime = time;
-                  },
-                ),
-              ],
-            )
-          ],
+      Text(label),
+      Text(
+        value,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: isGreen ? Colors.green : null,
         ),
       ),
-      SizedBox(height: 15),
-      Card(
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("M.R.P Total"),
-                Text(total.toString()),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Discount"),
-                Text(discount.toString()),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Amount to be paid"),
-                Text((total - discount).toString()),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text("Total Savings"),
-                Text(discount.toString()),
-              ],
-            ),
-          ],
-        ),
-      ),
-      SizedBox(
-        height: 16,
-      ),
-      Card(
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Checkbox(value: true, onChanged: (value) {}),
-                const Text(
-                  "Hard copy of reports",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            Text(
-                "Reports will be delivered within 3-4 working days. Hard copy charges are non-refundable once the reports have been dispatched."),
-            Text("150 per person")
-          ],
-        ),
-      ),
-      Container(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () async {
-            await removeCart(test);
-          },
-          child: Text(
-            "Schedule",
-            style: TextStyle(color: Colors.white),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-      )
     ],
   );
 }

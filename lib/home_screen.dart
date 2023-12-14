@@ -1,20 +1,24 @@
+import 'package:alemeno_health_checkup/all_packages.dart';
+import 'package:alemeno_health_checkup/all_tests.dart';
+import 'package:alemeno_health_checkup/cart_screen.dart';
+import 'package:alemeno_health_checkup/data/health_test.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:responsive_builder/responsive_builder.dart';
 import 'package:alemeno_health_checkup/data/test_packages.dart';
 import 'package:alemeno_health_checkup/model/functions.dart';
 import 'package:alemeno_health_checkup/model/widgets.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import 'package:responsive_builder/responsive_builder.dart';
-import 'cart_screen.dart';
-import 'data/health_test.dart';
+import 'package:tuple/tuple.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+class HomeScreen extends ConsumerStatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,134 +28,167 @@ class _HomeScreenState extends State<HomeScreen> {
               title: const Text("Health Checkup"),
               actions: [
                 IconButton(
-                    onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const CartPage())),
-                    icon: const Icon(Icons.shopping_bag_outlined))
+                  onPressed: () async {
+                    await Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const CartPage()));
+                    if (mounted) {
+                      setState(() {});
+                    }
+                  },
+                  icon: const Icon(Icons.shopping_bag_outlined),
+                )
               ],
             ),
       body: ResponsiveBuilder(builder: (context, sizingInformation) {
         return SingleChildScrollView(
           child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                if (MediaQuery.of(context).size.width > 816)
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.health_and_safety,
-                        size: 50,
-                      ),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.25,
-                      ),
-                      TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            "Home",
-                            style: TextStyle(color: Colors.blue),
-                          )),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.05,
-                      ),
-                      TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            "View Tests",
-                            style: TextStyle(color: Colors.black),
-                          )),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.05,
-                      ),
-                      TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            "About us",
-                            style: TextStyle(color: Colors.black),
-                          )),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.05,
-                      ),
-                      TextButton(
-                          onPressed: () {},
-                          child: const Text(
-                            "Contact",
-                            style: TextStyle(color: Colors.black),
-                          )),
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.05,
-                      ),
-                      Expanded(
-                        child: Container(
-                          alignment: Alignment.centerRight,
-                          child: ElevatedButton.icon(
-                            label: Text("Cart"),
-                            onPressed: () => Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => CartPage())),
-                            icon: Icon(Icons.shop_rounded),
-                          ),
-                        ),
-                      )
-                    ],
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              if (MediaQuery.of(context).size.width > 816) DesktopNavigation(),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Popular Tests",
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
-                Text(
-                  "Popular Tests",
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyLarge!
-                      .copyWith(fontWeight: FontWeight.bold),
-                ),
-                FutureBuilder(
-                  future: getTests(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting ||
-                        !snapshot.hasData) {
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
-                    return HealthTests(
-                        sizingInformation: sizingInformation,
-                        tests: snapshot.data!);
-                  },
-                ),
-                const Divider(color: Colors.black),
-                Text(
-                  "Popular Packages",
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyLarge!
-                      .copyWith(fontWeight: FontWeight.bold),
-                ),
-                FutureBuilder(
-                  future: getPackages(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    } else if (!snapshot.hasData) {
-                      return Center(
-                        child: Text("Empty Data"),
-                      );
-                    }
+                  TextButton(
+                      onPressed: () async {
+                        await Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => TestsView()));
+                        if (mounted) {
+                          setState(() {});
+                        }
+                      },
+                      child: Text("View More")),
+                ],
+              ),
+              FutureBuilder(
+                future: getTests(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting ||
+                      !snapshot.hasData) {
                     return Center(
-                        child: PackageTest(package: snapshot.data![0]));
-                  },
-                ),
-              ]),
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  return HealthTests(
+                    sizingInformation: sizingInformation,
+                    tests: snapshot.data!,
+                  );
+                },
+              ),
+              const Divider(color: Colors.black),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Popular Packages",
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  TextButton(
+                      onPressed: () async {
+                        await Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => PackagesView()));
+                        if (mounted) {
+                          setState(() {});
+                        }
+                      },
+                      child: Text("View More")),
+                ],
+              ),
+              FutureBuilder(
+                future: getPackages(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (!snapshot.hasData) {
+                    return Center(
+                      child: Text("Empty Data"),
+                    );
+                  }
+                  return Center(
+                    child: PackageTest(package: snapshot.data![0]),
+                  );
+                },
+              ),
+            ],
+          ),
         );
       }),
     );
   }
 }
 
+class DesktopNavigation extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(
+          Icons.health_and_safety,
+          size: 50,
+          color: Theme.of(context).primaryColor,
+        ),
+        const SizedBox(width: 20),
+        NavItem(title: 'Home', onPressed: () {}),
+        NavItem(title: 'View Tests', onPressed: () {}),
+        NavItem(title: 'About Us', onPressed: () {}),
+        NavItem(title: 'Contact', onPressed: () {}),
+        const Spacer(),
+        ElevatedButton.icon(
+          label: const Text("Cart"),
+          onPressed: () async {
+            await Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const CartPage()));
+            if (context.mounted) {
+              // ignore: use_build_context_synchronously
+              Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const HomeScreen()));
+            }
+          },
+          icon: const Icon(Icons.shop_rounded),
+        ),
+      ],
+    );
+  }
+}
+
+class NavItem extends StatelessWidget {
+  final String title;
+  final VoidCallback onPressed;
+
+  const NavItem({super.key, required this.title, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: onPressed,
+      child: Text(
+        title,
+        style: TextStyle(
+          color: Theme.of(context).textTheme.headlineSmall!.color,
+        ),
+      ),
+    );
+  }
+}
+
 // ignore: must_be_immutable
 class HealthTests extends StatefulWidget {
-  HealthTests(
-      {super.key, required this.sizingInformation, required this.tests});
-  SizingInformation sizingInformation;
-  List<Test> tests;
+  HealthTests({
+    Key? key,
+    required this.sizingInformation,
+    required this.tests,
+  }) : super(key: key);
+
+  final SizingInformation sizingInformation;
+  final List<Test> tests;
 
   @override
   State<HealthTests> createState() => _HealthTestsState();
@@ -159,135 +196,162 @@ class HealthTests extends StatefulWidget {
 
 class _HealthTestsState extends State<HealthTests> {
   bool isAdding = false;
+  Tuple3<int, double, int> calculateGridParameters(double availableWidth) {
+    int crossAxisCount = 2;
+    double childAspectRatio = 1.3;
+    int itemCount = 4;
+
+    if (availableWidth > 816) {
+      crossAxisCount = 4;
+      childAspectRatio = 1.6;
+      itemCount = 8;
+    } else if (availableWidth > 600) {
+      crossAxisCount = 3;
+      childAspectRatio = 1.3;
+      itemCount = 6;
+    }
+
+    return Tuple3<int, double, int>(
+        crossAxisCount, childAspectRatio, itemCount);
+  }
+
   @override
   Widget build(BuildContext context) {
     widget.tests
         .sort((a, b) => b.numberOfTestsTaken.compareTo(a.numberOfTestsTaken));
-    return GridView.builder(
-      shrinkWrap: true,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: widget.sizingInformation.isDesktop ? 4 : 2,
-          childAspectRatio: widget.sizingInformation.isDesktop ? 1.9 : 1.5),
-      itemCount: widget.sizingInformation.isDesktop ? 8 : 4,
-      itemBuilder: (context, index) {
-        return Container(
-          alignment: Alignment.bottomLeft,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.5),
-                spreadRadius: 5,
-                blurRadius: 10,
-                offset: const Offset(0, 3),
-              ),
-            ],
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double availableWidth = constraints.maxWidth;
+
+        Tuple3<int, double, int> gridParameters =
+            calculateGridParameters(availableWidth);
+        return GridView.builder(
+          shrinkWrap: true,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: gridParameters.item1,
+            childAspectRatio: gridParameters.item2,
           ),
-          child: Card(
-            elevation: 3,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary,
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(10.0),
-                      topRight: Radius.circular(10.0),
-                    ),
-                  ),
-                  child: Text(
-                    widget.tests[index].testName,
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelLarge!
-                        .copyWith(color: Colors.white, fontSize: 12),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(3),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          "Includes ${widget.tests[index].includesHowManyTests} tests",
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium!
-                              .copyWith(fontSize: 10),
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.only(left: 3),
-                        decoration: BoxDecoration(
-                          color: widget.tests[index].isSafe
-                              ? Colors.greenAccent
-                              : Colors.redAccent,
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                        child: Icon(
-                          widget.tests[index].isSafe
-                              ? Icons.check_circle_outline
-                              : Icons.cancel_outlined,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 3),
-                  child: Text(
-                    "Get reports in 24 hours",
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall!
-                        .copyWith(fontSize: 10),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(1),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '₹${widget.tests[index].priceInRupees}',
-                        style: const TextStyle(
-                          decoration: TextDecoration.lineThrough,
-                          color: Colors.red,
-                          fontSize: 14,
-                        ),
-                      ),
-                      Text(
-                        '₹${widget.tests[index].discountPrice}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                ButtonWidget(
-                    isDesktop: widget.sizingInformation.isDesktop,
-                    test: widget.tests[index])
-              ],
-            ),
-          ),
+          itemCount: gridParameters.item3,
+          itemBuilder: (context, index) {
+            return SingleChildScrollView(
+              child: healthTestTile(
+                  widget.tests[index], context, widget.sizingInformation),
+            );
+          },
         );
       },
     );
   }
 }
+
+Widget healthTestTile(Test test, BuildContext context,
+        SizingInformation? sizingInformation) =>
+    Container(
+      margin: EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.5),
+            spreadRadius: 3,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Card(
+        elevation: 3,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(10.0),
+                  topRight: Radius.circular(10.0),
+                ),
+              ),
+              child: Text(
+                test.testName,
+                style: Theme.of(context)
+                    .textTheme
+                    .labelMedium!
+                    .copyWith(color: Colors.white),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    "Includes ${test.includesHowManyTests} tests",
+                    style: Theme.of(context).textTheme.bodyText2,
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.only(left: 8),
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: test.isSafe ? Colors.greenAccent : Colors.redAccent,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: Icon(
+                    test.isSafe
+                        ? Icons.check_circle_outline
+                        : Icons.cancel_outlined,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            Text(
+              "Get reports in 24 hours",
+              style: Theme.of(context).textTheme.caption,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '₹${test.priceInRupees}',
+                  style: const TextStyle(
+                    decoration: TextDecoration.lineThrough,
+                    color: Colors.red,
+                    fontSize: 12,
+                  ),
+                ),
+                Text(
+                  '₹${test.discountPrice}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            ButtonWidget(
+              isDesktop:
+                  sizingInformation != null && sizingInformation.isDesktop,
+              test: test,
+            ),
+          ],
+        ),
+      ),
+    );
 
 class PackageTest extends StatelessWidget {
   PackageTest({Key? key, required this.package}) : super(key: key);
