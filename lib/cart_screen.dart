@@ -114,107 +114,114 @@ class _DesktopLayoutState extends State<_DesktopLayout> {
                     child: Icon(Icons.update),
                   ),
                 if (!isDeleting)
-                  ListView.builder(
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 15),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  widget.tests.value[index].testName,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyLarge!
-                                      .copyWith(color: Colors.blue),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (int index = 0;
+                          index < widget.tests.value.length;
+                          index++)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(height: 15),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    widget.tests.value[index].testName,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge!
+                                        .copyWith(color: Colors.blue),
+                                  ),
                                 ),
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    '₹${widget.tests.value[index].discountPrice}/-',
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green,
-                                      fontSize: 18,
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      '₹${widget.tests.value[index].discountPrice}/-',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green,
+                                        fontSize: 18,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    '₹${widget.tests.value[index].priceInRupees}',
-                                    style: const TextStyle(
-                                      decoration: TextDecoration.lineThrough,
-                                      color: Colors.red,
-                                      fontSize: 14,
+                                    Text(
+                                      '₹${widget.tests.value[index].priceInRupees}',
+                                      style: const TextStyle(
+                                        decoration: TextDecoration.lineThrough,
+                                        color: Colors.red,
+                                        fontSize: 14,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 5),
-                          // if (widget.isDesktop)
-                          Row(
-                            children: [
-                              ElevatedButton.icon(
-                                onPressed: () async {
-                                  setState(() {
-                                    isDeleting = !isDeleting;
-                                  });
-                                  final resp = await removeCart(
-                                      test: widget.tests.value[index]);
-                                  if (resp) {
+                                  ],
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 5),
+                            Column(
+                              children: [
+                                ElevatedButton.icon(
+                                  onPressed: () async {
                                     setState(() {
-                                      widget.tests.value
-                                          .remove(widget.tests.value[index]);
                                       isDeleting = !isDeleting;
                                     });
-                                  }
-                                },
-                                icon: const Icon(Icons.delete),
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    side: BorderSide(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary),
-                                    borderRadius: BorderRadius.circular(16),
+                                    final resp = await removeCart(
+                                        test: widget.tests.value[index]);
+                                    if (resp) {
+                                      setState(() {
+                                        widget.tests.value
+                                            .remove(widget.tests.value[index]);
+                                      });
+                                    }
+                                    setState(() {
+                                      isDeleting = !isDeleting;
+                                    });
+                                  },
+                                  icon: const Icon(Icons.delete),
+                                  style: ElevatedButton.styleFrom(
+                                    shape: RoundedRectangleBorder(
+                                      side: BorderSide(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  label: const Text("Remove"),
+                                ),
+                                SizedBox(height: 5),
+                                ElevatedButton.icon(
+                                  onPressed: () {},
+                                  icon: const Icon(Icons.upload),
+                                  style: ElevatedButton.styleFrom(
+                                    shape: RoundedRectangleBorder(
+                                      side: BorderSide(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  label: const Text(
+                                    "Upload prescription(optional)",
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                label: const Text("Remove"),
-                              ),
-                              SizedBox(width: 5),
-                              ElevatedButton.icon(
-                                onPressed: () {},
-                                icon: const Icon(Icons.upload),
-                                style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(
-                                    side: BorderSide(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .primary),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                ),
-                                label: const Text(
-                                  "Upload prescription(optional)",
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                          // if (isDesktop)
-
-                          const Divider(),
-                        ],
-                      );
-                    },
-                    itemCount: widget.tests.value.length,
+                              ],
+                            ),
+                            const Divider(),
+                          ],
+                        ),
+                      ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          icon: const Icon(Icons.add),
+                          label: const Text("Add more"))
+                    ],
                   ),
                 ElevatedButton.icon(
                     onPressed: () {
@@ -255,6 +262,7 @@ class _MobileLayout extends StatefulWidget {
 
 class _MobileLayoutState extends State<_MobileLayout> {
   bool isDeleting = false;
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -284,115 +292,115 @@ class _MobileLayoutState extends State<_MobileLayout> {
                   child: Icon(Icons.update),
                 ),
               if (!isDeleting)
-                ListView.builder(
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: 15),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                widget.tests.value[index].testName,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge!
-                                    .copyWith(color: Colors.blue),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (int index = 0;
+                        index < widget.tests.value.length;
+                        index++)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 15),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  widget.tests.value[index].testName,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge!
+                                      .copyWith(color: Colors.blue),
+                                ),
                               ),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  '₹${widget.tests.value[index].discountPrice}/-',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green,
-                                    fontSize: 18,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '₹${widget.tests.value[index].discountPrice}/-',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.green,
+                                      fontSize: 18,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  '₹${widget.tests.value[index].priceInRupees}',
-                                  style: const TextStyle(
-                                    decoration: TextDecoration.lineThrough,
-                                    color: Colors.red,
-                                    fontSize: 14,
+                                  Text(
+                                    '₹${widget.tests.value[index].priceInRupees}',
+                                    style: const TextStyle(
+                                      decoration: TextDecoration.lineThrough,
+                                      color: Colors.red,
+                                      fontSize: 14,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 5),
-
-                        // if (isDesktop)
-                        Column(
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed: () async {
-                                setState(() {
-                                  isDeleting = !isDeleting;
-                                });
-                                final resp = await removeCart(
-                                    test: widget.tests.value[index]);
-                                if (resp) {
+                                ],
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 5),
+                          Column(
+                            children: [
+                              ElevatedButton.icon(
+                                onPressed: () async {
                                   setState(() {
-                                    widget.tests.value
-                                        .remove(widget.tests.value[index]);
+                                    isDeleting = !isDeleting;
                                   });
-                                }
-                                setState(() {
-                                  isDeleting = !isDeleting;
-                                });
-                              },
-                              icon: const Icon(Icons.delete),
-                              style: ElevatedButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  side: BorderSide(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary),
-                                  borderRadius: BorderRadius.circular(16),
+                                  final resp = await removeCart(
+                                      test: widget.tests.value[index]);
+                                  if (resp) {
+                                    setState(() {
+                                      widget.tests.value
+                                          .remove(widget.tests.value[index]);
+                                    });
+                                  }
+                                  setState(() {
+                                    isDeleting = !isDeleting;
+                                  });
+                                },
+                                icon: const Icon(Icons.delete),
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    side: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                label: const Text("Remove"),
+                              ),
+                              SizedBox(height: 5),
+                              ElevatedButton.icon(
+                                onPressed: () {},
+                                icon: const Icon(Icons.upload),
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    side: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                label: const Text(
+                                  "Upload prescription(optional)",
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              label: const Text("Remove"),
-                            ),
-                            SizedBox(height: 5),
-                            ElevatedButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(Icons.upload),
-                              style: ElevatedButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  side: BorderSide(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                              ),
-                              label: const Text(
-                                "Upload prescription(optional)",
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Divider(),
-                      ],
-                    );
-                  },
-                  itemCount: widget.tests.value.length,
+                            ],
+                          ),
+                          const Divider(),
+                        ],
+                      ),
+                    ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text("Add more"))
+                  ],
                 ),
-              ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text("Add more"))
             ],
           ),
         ),

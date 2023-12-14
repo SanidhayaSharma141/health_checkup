@@ -109,6 +109,7 @@ class _CartDataState extends State<CartData> {
         if (!isDeleting)
           ListView.builder(
             shrinkWrap: true,
+            physics: AlwaysScrollableScrollPhysics(),
             itemBuilder: (context, index) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

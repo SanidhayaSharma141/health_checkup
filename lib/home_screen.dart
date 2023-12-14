@@ -198,7 +198,7 @@ class _HealthTestsState extends State<HealthTests> {
   bool isAdding = false;
   Tuple3<int, double, int> calculateGridParameters(double availableWidth) {
     int crossAxisCount = 2;
-    double childAspectRatio = 1.3;
+    double childAspectRatio = 1.1;
     int itemCount = 4;
 
     if (availableWidth > 816) {
@@ -228,6 +228,7 @@ class _HealthTestsState extends State<HealthTests> {
             calculateGridParameters(availableWidth);
         return GridView.builder(
           shrinkWrap: true,
+          physics: AlwaysScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: gridParameters.item1,
             childAspectRatio: gridParameters.item2,
