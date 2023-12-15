@@ -20,6 +20,10 @@ Prerequisites
 Flutter installed on your machine.
 
 Installation
+You can download the apk file using following link:
+https://github.com/SanidhayaSharma141/health_checkup/releases/tag/tag1
+
+or you can configure the project:
 
 1. Clone the repository
 2. Navigate to the project directory
