@@ -2,7 +2,6 @@
 
 import 'package:alemeno_health_checkup/data/health_test.dart';
 import 'package:alemeno_health_checkup/model/functions.dart';
-import 'package:alemeno_health_checkup/schedule_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';

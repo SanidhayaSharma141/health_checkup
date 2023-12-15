@@ -1,6 +1,6 @@
-import 'package:alemeno_health_checkup/all_packages.dart';
-import 'package:alemeno_health_checkup/all_tests.dart';
-import 'package:alemeno_health_checkup/cart_screen.dart';
+import 'package:alemeno_health_checkup/screens/all_packages.dart';
+import 'package:alemeno_health_checkup/screens/all_tests.dart';
+import 'package:alemeno_health_checkup/screens/cart_screen.dart';
 import 'package:alemeno_health_checkup/data/health_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
